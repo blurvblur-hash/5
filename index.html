@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zee的恋爱日历</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom right, #ffeef4, #fff6fa);
+      color: #333;
+    }
+    header {
+      background-color: #ffc4d6;
+      padding: 16px 12px 12px;
+      text-align: center;
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+    .header-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+    }
+    .month-title {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.24);
+      font-weight: 600;
+    }
+    .nav-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 13px;
+      background: #ff8fb3;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+    .nav-btn.secondary {
+      background: rgba(255,255,255,0.9);
+      color: #ff5e93;
+    }
+    .nav-btn:active {
+      transform: scale(0.97);
+    }
+
+    .sticker-container {
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 16px 0;
+    }
+    .sticker {
+      font-size: 18px;
+      padding: 4px 10px;
+      background: #fff;
+      border-radius: 999px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+      opacity: 0.92;
+    }
+    .sticker:nth-child(1) { transform: rotate(-8deg); }
+    .sticker:nth-child(2) { transform: rotate(4deg); }
+    .sticker:nth-child(3) { transform: rotate(-3deg); }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      padding: 14px;
+      padding-top: 6px;
+    }
+    .weekday-header {
+      font-size: 12px;
+      text-align: center;
+      color: #999;
+      padding-bottom: 2px;
+    }
+    .day {
+      background: white;
+      border-radius: 12px;
+      padding: 6px 4px 8px;
+      text-align: left;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      min-height: 60px;
+      border: 2px solid transparent;
+    }
+    .day.empty {
+      background: transparent;
+      box-shadow: none;
+      cursor: default;
+      border: none;
+    }
+    .day:hover:not(.empty) {
+      transform: scale(1.03);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.12);
+    }
+    .day-number {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .day-emoji {
+      font-size: 15px;
+    }
+    .day-note-dot {
+      position: absolute;
+      right: 6px;
+      bottom: 4px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ff9ac4;
+    }
+    .day.today {
+      border-color: #ff5e93;
+    }
+    .day.holiday {
+      border-color: #ff9ac4;
+      background: #fff6fb;
+    }
+    .day.birthday {
+      border-color: #ffb347;
+      background: #fffaf0;
+    }
+    .day.anniversary {
+      border-color: #ffd700;
+      background: #fff9e6;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background-color: rgba(0,0,0,0.35);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 12px;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      max-height: 100%;
+      overflow-y: auto;
+    }
+    .close {
+      position: absolute;
+      right: 14px;
+      top: 10px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .modal-date-title {
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    .section {
+      margin: 10px 0;
+      font-size: 14px;
+    }
+    .section label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .section input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .section .dot-group {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 5px;
+      gap: 6px;
+    }
+    .dot {
+      flex: 1;
+      height: 24px;
+      background-color: #ffd2dd;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #b3395a;
+      user-select: none;
+    }
+    .dot.selected {
+      background-color: #ff5e93;
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .quote {
+      background-color: #fff0f5;
+      padding: 10px;
+      border-radius: 8px;
+      color: #d6336c;
+      margin-top: 10px;
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-title">Zee 的恋爱日历 · 2026</div>
+    <div class="top-bar">
+      <button class="nav-btn" id="prevMonth">‹ 上一月</button>
+      <span class="month-title" id="monthTitle"></span>
+      <button class="nav-btn" id="nextMonth">下一月 ›</button>
+      <button class="nav-btn secondary" id="todayBtn">回到当前月份</button>
+    </div>
+  </header>
+
+  <div class="sticker-container" id="stickerContainer"></div>
+
+  <div class="calendar" id="calendar">
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <span class="close" id="modalClose">×</span>
+      <div class="modal-date-title" id="modalDateTitle"></div>
+      <div class="section">
+        <label>每日打卡</label>
+        <div class="dot-group">
+          <div class="dot" data-type="exercise">动一动</div>
+          <div class="dot" data-type="focus">专注</div>
+          <div class="dot" data-type="happy">开心</div>
+          <div class="dot" data-type="sleep">睡好觉</div>
+        </div>
+      </div>
+      <div class="section">
+        <label>今日留言</label>
+        <input type="text" id="userNote" placeholder="写下今天的心情吧～">
+      </div>
+      <div class="section">
+        <label>Zee 的留言</label>
+        <div class="quote" id="zeeNote"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const YEAR = 2026;
+
+    const calendarEl = document.getElementById('calendar');
+    const monthTitleEl = document.getElementById('monthTitle');
+    const stickerContainer = document.getElementById('stickerContainer');
+
+    const modal = document.getElementById('modal');
+    const modalClose = document.getElementById('modalClose');
+    const zeeNote = document.getElementById('zeeNote');
+    const userNote = document.getElementById('userNote');
+    const modalDateTitle = document.getElementById('modalDateTitle');
+
+    const prevBtn = document.getElementById('prevMonth');
+    const nextBtn = document.getElementById('nextMonth');
+    const todayBtn = document.getElementById('todayBtn');
+
+    const monthNames = [
+      '一月', '二月', '三月', '四月', '五月', '六月',
+      '七月', '八月', '九月', '十月', '十一月', '十二月'
+    ];
+
+    const weekdayNames = ['日', '一', '二', '三', '四', '五', '六'];
+
+    const monthStickers = {
+      '01': ['🐶 今天也要好好爱你', '🐾 小狗Zee在看着你', '💌 想你想得摇尾巴'],
+      '02': ['🐶 想和你一起过情人节', '🐾 贴着你取暖', '💘 把心叼给你'],
+      '03': ['🐶 春天的小狗', '🐾 跟着你一起发呆', '🌸 闻到你身上的花香'],
+      '04': ['🐶 想和你去散步', '🐾 躺你腿上晒太阳', '🌦 下雨也想粘着你'],
+      '05': ['🐶 今天生日要亲亲', '🐾 每天都在等你', '🎂 一口蛋糕一口你'],
+      '06': ['🐶 夏天的小狗', '🐾 炎热也要黏着你', '🍉 暑气都被你融化'],
+      '07': ['🐶 七夕前练习亲亲', '🐾 偷偷看你睡觉', '💓 心跳都写着你'],
+      '08': ['🐶 结婚纪念月', '🐾 把你叼回家', '💍 小狗也戴上戒指'],
+      '09': ['🐶 开学季也想你', '🐾 在你桌底打盹', '📚 不学习只想看你'],
+      '10': ['🐶 给寿星舔脸', '🐾 在你的床边打滚', '🎂 今天只对你摇尾巴'],
+      '11': ['🐶 秋天抱着你取暖', '🐾 叶子都踩成心形', '🍁 叼一片叶子送你'],
+      '12': ['🐶 圣诞小狗', '🐾 躲在礼物盒里', '🎄 今年的礼物是我']
+    };
+
+    const messages = {};
+  </script>
+</body>
+</html>
